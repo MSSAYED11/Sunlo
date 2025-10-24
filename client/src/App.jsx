@@ -6,6 +6,7 @@ import Signup from "./pages/Signup.jsx";
 import Signin from "./pages/Signin.jsx";
 import Landingpage from "./pages/Landingpage.jsx";
 import ChatApp from "./pages/ChatPage.jsx";
+import Profile from "./pages/Profile.jsx";
 
 function App() {
   useCurrentUser();
@@ -16,8 +17,13 @@ function App() {
     <Routes>
             <Route
         path="/"
+        element={userData ? <Profile/> : <Navigate to="/landingpage" />}
+      />
+      <Route
+        path="/profile"
         element={userData ? <ChatApp /> : <Navigate to="/landingpage" />}
       />
+      
       <Route
         path="/signup"
         element={!userData ? <Signup /> : <Navigate to="/" />}
