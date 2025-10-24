@@ -11,7 +11,7 @@ export default function ChatPage() {
   const navigate = useNavigate();
 
   // 🧠 Get current user from Redux (already set during sign in)
-  const user = useSelector((state) => state.user.user);
+  const user = useSelector((state) => state.user.user.user.name);
   console.log("chatPage ",user)
 
   const [message, setMessage] = useState("");
