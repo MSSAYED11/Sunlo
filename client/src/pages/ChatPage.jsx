@@ -3,7 +3,7 @@ import { useSelector } from "react-redux"; // to get user from Redux store
 import io from "socket.io-client";
 import { useNavigate } from "react-router-dom";
 
-const socket = io(import.meta.env.VITE_BACKEND_URL || "http://localhost:8000", {
+const socket = io(import.meta.env.VITE_API_URL|| "http://localhost:8000", {
   withCredentials: true,
 });
 
