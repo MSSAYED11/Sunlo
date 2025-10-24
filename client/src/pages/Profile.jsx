@@ -1,32 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { User, Mail, Edit, ArrowLeft } from "lucide-react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setUserData } from "../redux/userSlice";
-import { putUser, getCurrentUser } from "../apicalls/authCalls.js";
+import { putUser } from "../apicalls/authCalls.js";
 
 function Profile() {
   const dispatch = useDispatch();
+  const reduxUser = useSelector((state) => state.user.user); // Use Redux directly
 
-  const [userData, setUserDataState] = useState(null);
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState({
+    name: reduxUser?.name || "",
+    email: reduxUser?.email || "",
+  });
   const [editMode, setEditMode] = useState(false);
   const [backupData, setBackupData] = useState({});
-
-  useEffect(() => {
-    async function fetchUser() {
-      try {
-        const res = await getCurrentUser();
-        setUserDataState(res);
-        setFormData({
-          name: res.name || "",
-          email: res.email || "",
-        });
-      } catch (err) {
-        console.error("Failed to fetch user:", err);
-      }
-    }
-    fetchUser();
-  }, []);
 
   const updateField = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -46,7 +33,6 @@ function Profile() {
     try {
       const updatedUser = await putUser(formData);
       if (updatedUser) {
-        setUserDataState(updatedUser);
         dispatch(setUserData(updatedUser));
         setEditMode(false);
       }
@@ -58,8 +44,6 @@ function Profile() {
   const handleBack = () => {
     window.history.back();
   };
-
-  if (!userData) return <p className="text-center mt-20">Loading profile...</p>;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 flex justify-center py-12 px-4">
