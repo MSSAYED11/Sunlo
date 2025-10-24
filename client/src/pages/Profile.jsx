@@ -6,7 +6,8 @@ import { putUser } from "../apicalls/authCalls.js";
 
 function Profile() {
   const dispatch = useDispatch();
-  const reduxUser = useSelector((state) => state.user.user); // Use Redux directly
+  const reduxUser = useSelector((state) => state.user.user);
+  console.log("profile", reduxUser) // Use Redux directly
 
   const [formData, setFormData] = useState({
     name: reduxUser?.name || "",

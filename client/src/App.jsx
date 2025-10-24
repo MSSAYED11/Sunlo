@@ -17,11 +17,11 @@ function App() {
     <Routes>
             <Route
         path="/"
-        element={userData ? <Profile/> : <Navigate to="/landingpage" />}
+        element={userData ? <ChatApp/> : <Navigate to="/landingpage" />}
       />
       <Route
         path="/profile"
-        element={userData ? <ChatApp /> : <Navigate to="/landingpage" />}
+        element={userData ? <Profile /> : <Navigate to="/landingpage" />}
       />
       
       <Route
