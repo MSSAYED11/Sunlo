@@ -1,126 +1,121 @@
-import React, { useState, useEffect, useRef } from "react";
-import { io } from "socket.io-client";
+import { useEffect, useState } from "react";
+import io from "socket.io-client";
 
-const socket = io("http://localhost:8000"); // make sure port matches
+// ⚙️ Connect to your backend server
+const socket = io("https://sunlo-y4xc.onrender.com", {
+  withCredentials: true,
+}); 
+// For local testing, use: io("http://localhost:8000")
 
-function ChatApp() {
+export default function ChatPage() {
   const [username, setUsername] = useState("");
-  const [newMessage, setNewMessage] = useState("");
-  const [messages, setMessages] = useState([]);
-  const messagesEndRef = useRef(null);
+  const [joined, setJoined] = useState(false);
+  const [message, setMessage] = useState("");
+  const [chat, setChat] = useState([]);
 
-  const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-
+  // 📡 Listen for incoming messages
   useEffect(() => {
-    socket.on("receive_message", (message) => {
-      setMessages(prev => [...prev, message]);
+    socket.on("receive_message", (data) => {
+      setChat((prev) => [
+        ...prev,
+        { system: false, text: `${data.username}: ${data.message}` },
+      ]);
     });
 
-    return () => socket.off("receive_message");
+    socket.on("user_joined", (msg) => {
+      setChat((prev) => [...prev, { system: true, text: msg }]);
+    });
+
+    socket.on("user_left", (msg) => {
+      setChat((prev) => [...prev, { system: true, text: msg }]);
+    });
+
+    return () => {
+      socket.off("receive_message");
+      socket.off("user_joined");
+      socket.off("user_left");
+    };
   }, []);
 
-  useEffect(() => scrollToBottom(), [messages]);
-
-  const sendMessage = () => {
-    if (!username || !newMessage) return;
-    const messageData = { sender: username, content: newMessage };
-    socket.emit("send_message", messageData);
-    setNewMessage("");
+  // ✨ Join the chat
+  const joinChat = () => {
+    if (username.trim()) {
+      socket.emit("join_chat", username);
+      setJoined(true);
+      setChat((prev) => [
+        ...prev,
+        { system: true, text: `You joined as ${username}` },
+      ]);
+    }
   };
 
+  // 🚀 Send a new message
+  const sendMessage = () => {
+    if (message.trim()) {
+      socket.emit("send_message", message);
+      setMessage("");
+    }
+  };
+
+  // 🪪 Step 1: Join Screen
+  if (!joined) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
+        <div className="bg-white p-6 rounded shadow-md w-80 text-center">
+          <h1 className="text-2xl mb-4 font-semibold">Join Chat</h1>
+          <input
+            type="text"
+            className="border w-full p-2 rounded mb-3"
+            placeholder="Enter your name..."
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+          <button
+            onClick={joinChat}
+            className="bg-blue-600 text-white px-4 py-2 rounded w-full"
+          >
+            Join
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // 💬 Step 2: Chat Screen
   return (
-    <div style={{
-      minHeight: "100vh",
-      background: "linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%)",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      padding: "20px",
-      fontFamily: "Arial, sans-serif"
-    }}>
-      <div style={{
-        width: "100%",
-        maxWidth: "500px",
-        background: "#fff",
-        borderRadius: "20px",
-        padding: "20px",
-        boxShadow: "0 8px 30px rgba(0,0,0,0.1)",
-        display: "flex",
-        flexDirection: "column",
-        height: "80vh"
-      }}>
-        <h2 style={{ textAlign: "center", color: "#ff4d94" }}>🌸 Sunlo Chat</h2>
+    <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
+      <div className="bg-white p-6 rounded shadow-md w-96">
+        <h1 className="text-xl font-semibold mb-4 text-center">
+          Chat Room — {username}
+        </h1>
 
-        <input
-          placeholder="Enter your username..."
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "10px",
-            borderRadius: "10px",
-            border: "1px solid #ffb6c1",
-            marginBottom: "15px"
-          }}
-        />
-
-        <div style={{
-          flex: 1,
-          overflowY: "auto",
-          padding: "10px",
-          background: "#ffe6f0",
-          borderRadius: "15px",
-          marginBottom: "15px"
-        }}>
-          {messages.map((msg, i) => (
+        <div className="border h-80 overflow-y-auto p-3 rounded mb-3 bg-gray-50">
+          {chat.map((msg, i) => (
             <div
               key={i}
-              style={{
-                display: "flex",
-                justifyContent: msg.sender === username ? "flex-end" : "flex-start",
-                marginBottom: "10px"
-              }}
+              className={`p-1 ${
+                msg.system
+                  ? "text-center text-gray-500 text-sm italic"
+                  : "text-left"
+              }`}
             >
-              <div style={{
-                background: msg.sender === username ? "#ff4d94" : "#ffc0cb",
-                color: msg.sender === username ? "#fff" : "#333",
-                padding: "10px 15px",
-                borderRadius: "20px",
-                maxWidth: "70%",
-                wordWrap: "break-word",
-                boxShadow: "0 4px 8px rgba(0,0,0,0.1)"
-              }}>
-                <b>{msg.sender}:</b> {msg.content}
-              </div>
+              {msg.text}
             </div>
           ))}
-          <div ref={messagesEndRef} />
         </div>
 
-        <div style={{ display: "flex", gap: "10px" }}>
+        <div className="flex gap-2">
           <input
+            type="text"
+            className="border flex-1 p-2 rounded"
             placeholder="Type a message..."
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            style={{
-              flex: 1,
-              padding: "10px",
-              borderRadius: "20px",
-              border: "1px solid #ffb6c1"
-            }}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           />
           <button
             onClick={sendMessage}
-            style={{
-              padding: "10px 20px",
-              borderRadius: "20px",
-              border: "none",
-              background: "#ff4d94",
-              color: "#fff",
-              cursor: "pointer",
-              fontWeight: "bold",
-              boxShadow: "0 4px 8px rgba(0,0,0,0.1)"
-            }}
+            className="bg-green-500 text-white px-4 py-2 rounded"
           >
             Send
           </button>
@@ -129,5 +124,3 @@ function ChatApp() {
     </div>
   );
 }
-
-export default ChatApp;
