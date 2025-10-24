@@ -5,8 +5,7 @@ import useCurrentUser from "./hooks/useCurrentUser.jsx";
 import Signup from "./pages/Signup.jsx";
 import Signin from "./pages/Signin.jsx";
 import Landingpage from "./pages/Landingpage.jsx";
-// import Dashboard from "./pages/Dashboard.jsx";
-// import Forgotpassword from "./pages/Forgotpassword.jsx";
+import ChatApp from "./pages/ChatPage.jsx";
 
 function App() {
   useCurrentUser();
@@ -15,10 +14,10 @@ function App() {
 
   return (
     <Routes>
-      {/* <Route
+            <Route
         path="/"
-        element={userData ? <Dashboard /> : <Navigate to="/landingpage" />}
-      /> */}
+        element={userData ? <ChatApp /> : <Navigate to="/landingpage" />}
+      />
       <Route
         path="/signup"
         element={!userData ? <Signup /> : <Navigate to="/" />}
@@ -31,10 +30,6 @@ function App() {
         path="/landingpage"
         element={!userData ? <Landingpage /> : <Navigate to="/" />}
       />
-      {/* <Route
-        path="/forgot-password"
-        element={!userData ? <Forgotpassword /> : <Navigate to="/" />}
-      /> */}
     </Routes>
   );
 }

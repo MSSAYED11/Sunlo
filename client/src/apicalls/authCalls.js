@@ -30,17 +30,7 @@ export const signIn = async({userName, password}) =>{
     }
 }
 
-export const profileSetup = async({age,gender,weight,diabetesType,dibetesDuration,medications,activityLevel,mealPattern}) => {
-    try{
-        const response = await api.post(`/api/user/profile`, {
-            age,gender,weight,diabetesType,dibetesDuration,medications,activityLevel,mealPattern,
-        })
-        console.log("response", response.data)
-        return response.data
-    }catch(err){
-        console.log("Error during profile Setup", err)
-    }
-}
+
 
 export const getCurrentUser = async() => {
     try{
