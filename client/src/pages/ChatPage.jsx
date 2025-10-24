@@ -19,8 +19,8 @@ export default function ChatPage() {
 
   // 📡 Listen for messages and events
   useEffect(() => {
-    if (user?.userName) {
-      socket.emit("join_chat", user.userName);
+    if (user) {
+      socket.emit("join_chat", user);
     }
 
     socket.on("receive_message", (data) => {
