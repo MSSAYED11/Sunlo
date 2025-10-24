@@ -11,7 +11,7 @@ import Profile from "./pages/Profile.jsx";
 function App() {
   useCurrentUser();
   const userData = useSelector((state) => state.user.user);
-  console.log("App.jsx", userData.user.name);
+  console.log("App.jsx", userData);
 
   return (
     <Routes>
