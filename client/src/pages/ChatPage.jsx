@@ -1,20 +1,27 @@
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux"; // to get user from Redux store
 import io from "socket.io-client";
+import { useNavigate } from "react-router-dom";
 
-// ⚙️ Connect to your backend server
-const socket = io("https://sunlo-y4xc.onrender.com", {
+const socket = io(import.meta.env.VITE_BACKEND_URL || "http://localhost:8000", {
   withCredentials: true,
-}); 
-// For local testing, use: io("http://localhost:8000")
+});
 
 export default function ChatPage() {
-  const [username, setUsername] = useState("");
-  const [joined, setJoined] = useState(false);
+  const navigate = useNavigate();
+
+  // 🧠 Get current user from Redux (already set during sign in)
+  const { user } = useSelector((state) => state.auth);
+
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState([]);
 
-  // 📡 Listen for incoming messages
+  // 📡 Listen for messages and events
   useEffect(() => {
+    if (user?.userName) {
+      socket.emit("join_chat", user.userName);
+    }
+
     socket.on("receive_message", (data) => {
       setChat((prev) => [
         ...prev,
@@ -30,26 +37,18 @@ export default function ChatPage() {
       setChat((prev) => [...prev, { system: true, text: msg }]);
     });
 
+    socket.on("name_changed", (msg) => {
+      setChat((prev) => [...prev, { system: true, text: msg }]);
+    });
+
     return () => {
       socket.off("receive_message");
       socket.off("user_joined");
       socket.off("user_left");
+      socket.off("name_changed");
     };
-  }, []);
+  }, [user]);
 
-  // ✨ Join the chat
-  const joinChat = () => {
-    if (username.trim()) {
-      socket.emit("join_chat", username);
-      setJoined(true);
-      setChat((prev) => [
-        ...prev,
-        { system: true, text: `You joined as ${username}` },
-      ]);
-    }
-  };
-
-  // 🚀 Send a new message
   const sendMessage = () => {
     if (message.trim()) {
       socket.emit("send_message", message);
@@ -57,46 +56,35 @@ export default function ChatPage() {
     }
   };
 
-  // 🪪 Step 1: Join Screen
-  if (!joined) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-        <div className="bg-white p-6 rounded shadow-md w-80 text-center">
-          <h1 className="text-2xl mb-4 font-semibold">Join Chat</h1>
-          <input
-            type="text"
-            className="border w-full p-2 rounded mb-3"
-            placeholder="Enter your name..."
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
+  const handleProfileClick = () => {
+    navigate("/profile"); // redirect to profile settings page
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-pink-50 text-gray-800">
+      <div className="bg-white w-96 rounded-2xl shadow-lg border border-pink-200 overflow-hidden">
+        {/* Header */}
+        <div className="flex justify-between items-center bg-pink-400 text-white px-4 py-3">
+          <h1 className="text-lg font-semibold">🌸 Pink Chat</h1>
           <button
-            onClick={joinChat}
-            className="bg-blue-600 text-white px-4 py-2 rounded w-full"
+            onClick={handleProfileClick}
+            className="bg-white text-pink-500 text-sm px-3 py-1 rounded-full hover:bg-pink-100 transition"
           >
-            Join
+            {user?.userName || "Profile"}
           </button>
         </div>
-      </div>
-    );
-  }
 
-  // 💬 Step 2: Chat Screen
-  return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-      <div className="bg-white p-6 rounded shadow-md w-96">
-        <h1 className="text-xl font-semibold mb-4 text-center">
-          Chat Room — {username}
-        </h1>
-
-        <div className="border h-80 overflow-y-auto p-3 rounded mb-3 bg-gray-50">
+        {/* Chat Messages */}
+        <div className="h-80 overflow-y-auto bg-pink-50 px-4 py-3">
           {chat.map((msg, i) => (
             <div
               key={i}
-              className={`p-1 ${
+              className={`mb-2 ${
                 msg.system
                   ? "text-center text-gray-500 text-sm italic"
-                  : "text-left"
+                  : msg.text.startsWith(user?.userName)
+                  ? "text-right text-pink-700 font-medium"
+                  : "text-left text-gray-800"
               }`}
             >
               {msg.text}
@@ -104,18 +92,18 @@ export default function ChatPage() {
           ))}
         </div>
 
-        <div className="flex gap-2">
+        {/* Input Box */}
+        <div className="flex p-3 border-t border-pink-200 bg-pink-100">
           <input
-            type="text"
-            className="border flex-1 p-2 rounded"
-            placeholder="Type a message..."
+            className="flex-1 border border-pink-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-pink-400"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
+            placeholder="Type your message..."
             onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           />
           <button
             onClick={sendMessage}
-            className="bg-green-500 text-white px-4 py-2 rounded"
+            className="ml-2 bg-pink-500 text-white px-4 py-2 rounded-lg hover:bg-pink-600 transition"
           >
             Send
           </button>
