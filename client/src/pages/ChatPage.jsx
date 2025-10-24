@@ -1,26 +1,29 @@
-import { useEffect, useState } from "react";
-import { useSelector } from "react-redux"; // to get user from Redux store
+import { useEffect, useState, useRef } from "react";
+import { useSelector } from "react-redux";
 import io from "socket.io-client";
 import { useNavigate } from "react-router-dom";
 
-const socket = io(import.meta.env.VITE_API_URL|| "http://localhost:8000", {
+const socket = io(import.meta.env.VITE_API_URL || "http://localhost:8000", {
   withCredentials: true,
 });
 
 export default function ChatPage() {
   const navigate = useNavigate();
-
-  // 🧠 Get current user from Redux (already set during sign in)
-  const user = useSelector((state) => state.user.user.user.name)
+  const user = useSelector((state) => state.user.user.user.name);
 
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState([]);
 
-  // 📡 Listen for messages and events
+  const chatEndRef = useRef(null); // 📌 Ref to scroll to latest message
+
+  // Scroll to bottom whenever chat updates
   useEffect(() => {
-    if (user) {
-      socket.emit("join_chat", user);
-    }
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chat]);
+
+  // Socket event listeners
+  useEffect(() => {
+    if (user) socket.emit("join_chat", user);
 
     socket.on("receive_message", (data) => {
       setChat((prev) => [
@@ -56,33 +59,31 @@ export default function ChatPage() {
     }
   };
 
-  const handleProfileClick = () => {
-    navigate("/profile"); // redirect to profile settings page
-  };
+  const handleProfileClick = () => navigate("/profile");
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-pink-50 text-gray-800">
-      <div className="bg-white w-96 rounded-2xl shadow-lg border border-pink-200 overflow-hidden">
+    <div className="flex justify-center items-center min-h-screen bg-pink-50 text-gray-800 p-2">
+      <div className="bg-white w-full max-w-md rounded-2xl shadow-lg border border-pink-200 flex flex-col h-[90vh]">
         {/* Header */}
-        <div className="flex justify-between items-center bg-pink-400 text-white px-4 py-3">
+        <div className="flex justify-between items-center bg-pink-400 text-white px-4 py-3 rounded-t-2xl">
           <h1 className="text-lg font-semibold">Sunlo Chat</h1>
           <button
             onClick={handleProfileClick}
             className="bg-white text-pink-500 text-sm px-3 py-1 rounded-full hover:bg-pink-100 transition"
           >
-            {user?.userName || "Profile"}
+            {user || "Profile"}
           </button>
         </div>
 
         {/* Chat Messages */}
-        <div className="h-80 overflow-y-auto bg-pink-50 px-4 py-3">
+        <div className="flex-1 overflow-y-auto bg-pink-50 px-4 py-3">
           {chat.map((msg, i) => (
             <div
               key={i}
-              className={`mb-2 ${
+              className={`mb-2 break-words ${
                 msg.system
                   ? "text-center text-gray-500 text-sm italic"
-                  : msg.text.startsWith(user?.userName)
+                  : msg.text.startsWith(user)
                   ? "text-right text-pink-700 font-medium"
                   : "text-left text-gray-800"
               }`}
@@ -90,10 +91,11 @@ export default function ChatPage() {
               {msg.text}
             </div>
           ))}
+          <div ref={chatEndRef} />
         </div>
 
         {/* Input Box */}
-        <div className="flex p-3 border-t border-pink-200 bg-pink-100">
+        <div className="flex p-3 border-t border-pink-200 bg-pink-100 rounded-b-2xl">
           <input
             className="flex-1 border border-pink-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-pink-400"
             value={message}
