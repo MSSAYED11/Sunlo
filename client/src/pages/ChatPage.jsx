@@ -12,7 +12,7 @@ export default function ChatPage() {
 
   // 🧠 Get current user from Redux (already set during sign in)
   const user = useSelector((state) => state.user.user);
-  console.log(user)
+  console.log("chatPage ",user)
 
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState([]);
@@ -66,7 +66,7 @@ export default function ChatPage() {
       <div className="bg-white w-96 rounded-2xl shadow-lg border border-pink-200 overflow-hidden">
         {/* Header */}
         <div className="flex justify-between items-center bg-pink-400 text-white px-4 py-3">
-          <h1 className="text-lg font-semibold">🌸 Pink Chat</h1>
+          <h1 className="text-lg font-semibold">Sunlo Chat</h1>
           <button
             onClick={handleProfileClick}
             className="bg-white text-pink-500 text-sm px-3 py-1 rounded-full hover:bg-pink-100 transition"

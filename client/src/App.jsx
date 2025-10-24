@@ -10,7 +10,7 @@ import ChatApp from "./pages/ChatPage.jsx";
 function App() {
   useCurrentUser();
   const userData = useSelector((state) => state.user.user);
-  console.log("App.jsx", userData);
+  console.log("App.j", userData);
 
   return (
     <Routes>
